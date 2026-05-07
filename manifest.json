@@ -3,7 +3,7 @@
   "name": "Simple E2E Bridge",
   "version": "0.1",
   "description": "Encrypted messaging layer for web messengers.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "tabs", "scripting"],
   "background": {
     "service_worker": "background/background.js",
     "type": "module"
@@ -13,6 +13,7 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "host_permissions": ["https://web.rubika.ir/*"],
   "action": {
     "default_title": "E2E Bridge",
     "default_popup": "popup/popup.html",

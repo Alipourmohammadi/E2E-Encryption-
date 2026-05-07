@@ -1,312 +1,90 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #d2d2d7;            /* darker border for better definition */
-      --text: #000000;              /* pure black for maximum contrast */
-      --text-secondary: #3a3a3c;   /* was #6e6e73 — now much darker */
-      --accent: #0071e3;
-      --accent-hover: #0077ed;
-      --accent-subtle: #e8f4fd;
-      --radius: 10px;
-      --radius-sm: 6px;
-      --transition: 0.18s ease;
-      --placeholder-empty: #555559; /* was #8e8e93 — now much darker */
-    }
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="toast" id="toast">Copied!</div>
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      width: 320px;
-      padding: 20px 18px 18px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 13px;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 18px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    .header-icon {
-      width: 28px;
-      height: 28px;
-      background: var(--accent);
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      color: #fff;
-      flex-shrink: 0;
-    }
-    .header h3 {
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: -0.2px;
-      color: #000000;              /* ensure header is pure black */
-    }
-
-    .section {
-      margin-bottom: 14px;
-    }
-    .section-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;            /* bolder */
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-
-    button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      padding: 8px 14px;
-      font-size: 12.5px;
-      font-weight: 500;
-      font-family: inherit;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all var(--transition);
-      white-space: nowrap;
-      letter-spacing: -0.1px;
-    }
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-      font-weight: 600;            /* bolder button text */
-    }
-    .btn-primary:hover {
-      background: var(--accent-hover);
-      box-shadow: 0 2px 8px rgba(0,113,227,0.25);
-    }
-    .btn-outline {
-      background: var(--surface);
-      color: #1d1d1f;              /* darker button text */
-      border: 1px solid var(--border);
-      font-weight: 600;            /* bolder */
-    }
-    .btn-outline:hover {
-      background: var(--accent-subtle);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 9px 12px;
-      font-size: 13px;
-      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      color: #000000;              /* pure black input text */
-      outline: none;
-      transition: border var(--transition), box-shadow var(--transition);
-      margin-bottom: 8px;
-    }
-    input[type="text"]:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0,113,227,0.1);
-    }
-    input[type="text"]::placeholder {
-      color: var(--placeholder-empty);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      font-size: 12px;
-      font-weight: 500;            /* slightly bolder placeholder */
-    }
-
-    .output-row {
-      display: flex;
-      align-items: stretch;
-      gap: 6px;
-      margin-top: 6px;
-    }
-    .output-box {
-      flex: 1;
-      min-width: 0;
-      padding: 8px 11px;
-      font-size: 12px;
-      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      word-break: break-all;
-      color: #000000;              /* pure black output text */
-      font-weight: 500;            /* slightly bolder for readability */
-      min-height: 34px;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: all var(--transition);
-      user-select: all;
-    }
-    .output-box:hover {
-      border-color: var(--accent);
-      background: var(--accent-subtle);
-    }
-    .output-box:active {
-      background: #dceefa;
-    }
-    .output-box.empty {
-      color: var(--placeholder-empty);
-      font-style: italic;
-      font-weight: 400;
-      user-select: none;
-    }
-
-    .copy-btn {
-      flex-shrink: 0;
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 600;            /* bolder copy button text */
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 3px;
-    }
-    .copy-btn:hover {
-      background: var(--accent-subtle);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .copy-btn.copied {
-      background: #e6f7ed;
-      border-color: #34c759;
-      color: #1a7f3a;
-      font-weight: 700;
-    }
-
-    .copy-icon {
-      width: 14px;
-      height: 14px;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%) translateY(60px);
-      background: #1d1d1f;
-      color: #fff;
-      font-size: 11.5px;
-      font-weight: 600;            /* bolder toast text */
-      padding: 7px 16px;
-      border-radius: 20px;
-      pointer-events: none;
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
-      z-index: 10;
-      white-space: nowrap;
-    }
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 14px 0;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="toast" id="toast">Copied!</div>
-
-  <div class="header">
-    <div class="header-icon">🔐</div>
-    <h3>E2E Bridge</h3>
-  </div>
-
-  <!-- Public Key Section -->
-  <div class="section">
-    <span class="section-label">Your Public Key</span>
-    <button class="btn-outline" id="show-key" style="width:100%;">🔑 Show my public key ID</button>
-    <div class="output-row" style="margin-top:8px;">
-      <div class="output-box empty" id="pub-key-out" title="Click to copy">Key ID will appear here</div>
-      <button class="copy-btn" data-target="pub-key-out" title="Copy">
-        <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v4H8V2"/><line x1="8" y1="10" x2="16" y2="10"/>
-        </svg>
-        Copy
-      </button>
+    <div class="header">
+      <div class="header-icon">🔐</div>
+      <h3>E2E Bridge</h3>
+      <button id="toggle-manual">Manual</button>
     </div>
-    <div class="output-row" style="margin-top:4px;">
-      <div class="output-box empty" id="finger-out" title="Click to copy">Fingerprint will appear here</div>
-      <button class="copy-btn" data-target="finger-out" title="Copy">
-        <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v4H8V2"/><line x1="8" y1="10" x2="16" y2="10"/>
-        </svg>
-        Copy
-      </button>
+    <div id="manual-tab" style="display: none;">
+      <!-- Get Public Key Section -->
+      <div class="section">
+        <span class="section-label">Your Public Key</span>
+        <button class="btn-outline" id="show-key" style="width: 100%">
+          🔑 Show my public key ID
+        </button>
+        <!-- publickey outpu -->
+        <div class="output-row" style="margin-top: 8px;display: none;">
+          <div class="output-box empty" id="pub-key-out" title="Click to copy">
+            Key ID will appear here
+          </div>
+        </div>
+        <!-- fingerPring outpu -->
+        <div class="output-row" style="margin-top: 4px;display: none;">
+          <div class="output-box empty" id="finger-out" title="Click to copy">
+            Fingerprint will appear here
+          </div>
+        </div>
+
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Encrypt Section -->
+      <div class="section">
+        <span class="section-label">🔒 Encrypt</span>
+        <input type="text" id="message" placeholder="Message to encrypt..." />
+        <input
+          type="text"
+          id="publickey"
+          placeholder="Recipient's public key..."
+        />
+        <button class="btn-primary" id="Encrypt-key" style="width: 100%">
+          Encrypt Message
+        </button>
+        <div class="output-row">
+          <div class="output-box empty" id="encryption" title="Click to copy">
+            Encrypted output will appear here
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Decrypt Section -->
+      <div class="section">
+        <span class="section-label">🔓 Decrypt</span>
+        <input
+          type="text"
+          id="encrypted-message"
+          placeholder="Encrypted message..."
+        />
+        <button class="btn-primary" id="Decrypt-key" style="width: 100%">
+          Decrypt Message
+        </button>
+        <div class="output-row">
+          <div class="output-box empty" id="decryption" title="Click to copy">
+            Decrypted output will appear here
+          </div>
+        </div>
+      </div>
+
     </div>
-  </div>
-
-  <hr class="divider">
-
-  <!-- Encrypt Section -->
-  <div class="section">
-    <span class="section-label">🔒 Encrypt</span>
-    <input type="text" id="message" placeholder="Message to encrypt...">
-    <input type="text" id="publickey" placeholder="Recipient's public key...">
-    <button class="btn-primary" id="Encrypt-key" style="width:100%;">Encrypt Message</button>
-    <div class="output-row">
-      <div class="output-box empty" id="encryption" title="Click to copy">Encrypted output will appear here</div>
-      <button class="copy-btn" data-target="encryption" title="Copy">
-        <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v4H8V2"/><line x1="8" y1="10" x2="16" y2="10"/>
-        </svg>
-        Copy
-      </button>
+    <div id="auto-tab">
+      <div class="section" >
+        <span class="section-label" id="auto-tab-section">You are not in Rubika webPage</span>
+      </div>
     </div>
-  </div>
-
-  <hr class="divider">
-
-  <!-- Decrypt Section -->
-  <div class="section">
-    <span class="section-label">🔓 Decrypt</span>
-    <input type="text" id="encrypted-message" placeholder="Encrypted message...">
-    <button class="btn-primary" id="Decrypt-key" style="width:100%;">Decrypt Message</button>
-    <div class="output-row">
-      <div class="output-box empty" id="decryption" title="Click to copy">Decrypted output will appear here</div>
-      <button class="copy-btn" data-target="decryption" title="Copy">
-        <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="8" y="2" width="12" height="18" rx="2"/><path d="M16 2v4H8V2"/><line x1="8" y1="10" x2="16" y2="10"/>
-        </svg>
-        Copy
-      </button>
-    </div>
-  </div>
 
 
-  <script src="popup.js"></script>
-</body>
+    <script src="popup.js"></script>
+    <script src="UI.js"></script>
+    <script src="coppying.js"></script>
+  </body>
 </html>
