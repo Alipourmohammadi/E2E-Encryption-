@@ -28,7 +28,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   } else if (request.action === "EncryptMessage") {
     (async () => {
-      const publicKeyCryptoKey = await unPackPublicKey(request.recipientPublicKey);
+      let recipientPublicKey = request.recipientPublicKey;
+      if (request.chatId) {
+        await ContactManager.getContact(request.chatId).then((contact) => recipientPublicKey = contact.publicKey);
+      }
+      const publicKeyCryptoKey = await unPackPublicKey(recipientPublicKey);
       console.log(publicKeyCryptoKey);
 
       encryptMessage(request.message, publicKeyCryptoKey).then(encrypted => {
@@ -39,6 +43,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   } else if (request.action === "getContact") {
     ContactManager.getContact(request.chatId).then(sendResponse);
+    return true;
+  } else if (request.action === "getAllContacts") {
+    ContactManager.getAllContacts().then(contacts => sendResponse({ contacts }));
     return true;
   } else if (request.action === "saveContact") {
     // Generate fingerprint for out-of-band verification
@@ -67,6 +74,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       console.log('toggled');
       sendResponse({ success: true });
     })
+    return true;
+  } else if (request.action === "verifyContact") {
+    ContactManager.verifyContact(request.chatId).then(() => {
+      console.log('verification!');
+      sendResponse({ success: true, verified: true });
+    })
+    return true;
+  } else if (request.action === "updateContactName") {
+    ContactManager.updateContactName(request.chatId, request.name).then(() => {
+      console.log('name updated!');
+      sendResponse({ success: true });
+    })
+    return true;
   }
 });
 

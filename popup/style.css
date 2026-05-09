@@ -342,3 +342,91 @@ input[type="text"]::placeholder {
   color: var(--text-secondary);
   border-style: dashed;
 }
+
+/* contact card styles */
+.contact-item {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  background: #fafafa;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+.contact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.contact-name-field {
+  font-weight: bold;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+  width: 150px;
+}
+
+.contact-chat-id-small {
+  font-size: 10px;
+  color: #888;
+  word-break: break-all;
+  margin-top: 4px;
+  font-family: monospace;
+}
+
+.contact-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.contact-btn {
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.toggle-btn {
+  background: #2196f3;
+  color: white;
+}
+.toggle-btn.on {
+  background: #4caf50;
+}
+.toggle-btn.off {
+  background: #f44336;
+}
+
+.verify-btn {
+  background: #ff9800;
+  color: white;
+}
+.verify-btn:hover {
+  background: #fb8c00;
+}
+
+.save-name-btn {
+  background: #9c27b0;
+  color: white;
+  font-size: 11px;
+  padding: 4px 8px;
+}
+.save-name-btn:hover {
+  background: #7b1fa2;
+}
+
+.contact-fingerprint {
+  font-family: monospace;
+  font-size: 11px;
+  color: #555;
+  background: #eee;
+  padding: 4px;
+  border-radius: 3px;
+}

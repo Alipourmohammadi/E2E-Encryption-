@@ -79,23 +79,17 @@
         <span class="section-label">Active Chat ID</span>
         <div id="auto-tab-section" class="chat-id-display">Detecting...</div>
       </div>
-
-      <div class="guide-section">
-        <span class="section-label">User Guide</span>
-        <ul class="guide-list">
-          <li>
-            <span>1</span> <b>Secure:</b> Click "Secure This Chat" in the
-            messenger header to send your Public Key.
-          </li>
-          <li>
-            <span>2</span> <b>Verify:</b> Compare fingerprints with your contact
-            to ensure no man-in-the-middle.
-          </li>
-          <li>
-            <span>3</span> <b>Auto-Decrypt:</b> Once verified, hover over locked
-            messages to reveal content.
-          </li>
-        </ul>
+      <!-- contacts card -->
+      <div class="contacts-card">
+        <div class="card-header">
+          <span class="section-label">Saved Contacts</span>
+          <button id="refresh-contacts-btn" class="refresh-btn">
+            ⟳ Refresh
+          </button>
+        </div>
+        <div id="contacts-list" class="contacts-list">
+          <div class="placeholder">No contacts yet. Secure a chat to add.</div>
+        </div>
       </div>
     </div>
 
