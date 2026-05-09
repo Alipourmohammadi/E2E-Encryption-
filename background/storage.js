@@ -30,6 +30,19 @@ export const ContactManager = {
     });
   },
 
+  async deleteContact(chatId) {
+    return new Promise((resolve, reject) => {
+      if (!chatId) return reject(new Error("Missing chatId"));
+      chrome.storage.local.remove(chatId, () => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  },
+  
   async updateContactStatus(chatId, status) {
     const contact = await this.getContact(chatId);
     if (contact) {

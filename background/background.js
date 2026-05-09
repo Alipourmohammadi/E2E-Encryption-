@@ -87,6 +87,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ success: true });
     })
     return true;
+  } else if (request.action === "deleteContact") {
+    const { chatId } = request;
+    ContactManager.deleteContact(chatId)
+      .then(() => sendResponse({ success: true }))
+      .catch(err => sendResponse({ success: false, error: err.message }));
+    return true;
+  } else if (request.action === "EncryptMessageToSend") {
+    (async () => {
+      let recipientPublicKey = request.recipientPublicKey;
+      if (request.chatId) {
+        await ContactManager.getContact(request.chatId).then((contact) => recipientPublicKey = contact.publicKey);
+      }
+      const publicKeyCryptoKey = await unPackPublicKey(recipientPublicKey);
+      console.log(publicKeyCryptoKey);
+
+      const message1 = await encryptMessage(request.message, publicKeyCryptoKey);
+      const kp = await ensureKeyPair();
+      const message2 = await encryptMessage(request.message, kp.publicKey);
+      sendResponse({ encrypted: `${message1}[E2E-SENT]${message2}` });
+
+    })();
+    return true;
   }
 });
 
