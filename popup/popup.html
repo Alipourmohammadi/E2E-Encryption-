@@ -12,7 +12,7 @@
       <h3>E2E Bridge</h3>
       <button id="toggle-manual">Manual</button>
     </div>
-    <div id="manual-tab" style="display: none;">
+    <div id="manual-tab" style="display: none">
       <!-- Get Public Key Section -->
       <div class="section">
         <span class="section-label">Your Public Key</span>
@@ -20,18 +20,17 @@
           🔑 Show my public key ID
         </button>
         <!-- publickey outpu -->
-        <div class="output-row" style="margin-top: 8px;display: none;">
+        <div class="output-row" style="margin-top: 8px; display: none">
           <div class="output-box empty" id="pub-key-out" title="Click to copy">
             Key ID will appear here
           </div>
         </div>
         <!-- fingerPring outpu -->
-        <div class="output-row" style="margin-top: 4px;display: none;">
+        <div class="output-row" style="margin-top: 4px; display: none">
           <div class="output-box empty" id="finger-out" title="Click to copy">
             Fingerprint will appear here
           </div>
         </div>
-
       </div>
 
       <hr class="divider" />
@@ -74,14 +73,31 @@
           </div>
         </div>
       </div>
-
     </div>
     <div id="auto-tab">
-      <div class="section" >
-        <span class="section-label" id="auto-tab-section">You are not in Rubika webPage</span>
+      <div class="status-card">
+        <span class="section-label">Active Chat ID</span>
+        <div id="auto-tab-section" class="chat-id-display">Detecting...</div>
+      </div>
+
+      <div class="guide-section">
+        <span class="section-label">User Guide</span>
+        <ul class="guide-list">
+          <li>
+            <span>1</span> <b>Secure:</b> Click "Secure This Chat" in the
+            messenger header to send your Public Key.
+          </li>
+          <li>
+            <span>2</span> <b>Verify:</b> Compare fingerprints with your contact
+            to ensure no man-in-the-middle.
+          </li>
+          <li>
+            <span>3</span> <b>Auto-Decrypt:</b> Once verified, hover over locked
+            messages to reveal content.
+          </li>
+        </ul>
       </div>
     </div>
-
 
     <script src="popup.js"></script>
     <script src="UI.js"></script>
