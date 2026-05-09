@@ -2,6 +2,8 @@
 import { encryptMessage, decryptMessage } from './crypto.js';
 import { ensureKeyPair, computeFingerprint } from './keyManger.js';
 import { packPublicKey, unPackPublicKey } from './utils.js';
+import { ContactManager } from './storage.js';
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log("E2E Bridge installed!");
 });
@@ -28,13 +30,43 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     (async () => {
       const publicKeyCryptoKey = await unPackPublicKey(request.recipientPublicKey);
       console.log(publicKeyCryptoKey);
-      
-      encryptMessage(request.message,publicKeyCryptoKey ).then(encrypted => {
+
+      encryptMessage(request.message, publicKeyCryptoKey).then(encrypted => {
         sendResponse({ encrypted: encrypted });
         console.log(encrypted);
       });
     })();
     return true;
+  } else if (request.action === "getContact") {
+    ContactManager.getContact(request.chatId).then(sendResponse);
+    return true;
+  } else if (request.action === "saveContact") {
+    // Generate fingerprint for out-of-band verification
+    unPackPublicKey(request.publicKey)
+      .then(cryptoKey => computeFingerprint(cryptoKey))
+      .then(fingerprint => {
+        const shortFingerprint = fingerprint.substring(0, 16); // Truncated SHA-256
+        return ContactManager.saveContact(request.chatId, request.publicKey, shortFingerprint);
+      })
+      .then(() => sendResponse({ success: true }))
+      .catch(e => {
+        console.error("Key saving failed", e);
+        sendResponse({ success: false, error: e.message });
+      });
+    return true;
+  } else if (request.action === "broadcastHandshake") {
+    ensureKeyPair()
+      .then(kp => packPublicKey(kp.publicKey))
+      .then(shortKeyString => {
+        const handshakePayload = `[E2E-HANDSHAKE]${shortKeyString}`;
+        sendResponse({ payload: handshakePayload });
+      });
+    return true;
+  } else if (request.action === "toggleAutoDecrypt") {
+    ContactManager.toggleAutoDecrypt(request.chatId, request.enabled).then(() => {
+      console.log('toggled');
+      sendResponse({ success: true });
+    })
   }
 });
 

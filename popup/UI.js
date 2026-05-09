@@ -34,7 +34,7 @@ getCurrentTab().then(async tab => {
       const result = tab.url.substring(startIndex);
       section.textContent = result;
       const message = await findMessagesEndingWithEqualsInTab(result,tab.id);
-      console.error(message);
+      // console.error(message);
       section.textContent = message;
     }
   }
