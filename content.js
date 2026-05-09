@@ -152,7 +152,7 @@ async function attachEphemeralDecrypt(node, encryptedText) {
 
   decryptIcon.addEventListener('mouseenter', () => decryptIcon.style.opacity = '1');
   decryptIcon.addEventListener('mouseleave', () => decryptIcon.style.opacity = '0.5');
-  const match = str.match(/(.*?)\[E2E-SENT\]/);
+  const match = encryptedText.match(/(.*?)\[E2E-SENT\]/);
   const encryptedMessage = match ? match[1] : str;
   decryptIcon.addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedMessage }, (res) => {
