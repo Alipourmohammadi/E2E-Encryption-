@@ -43,12 +43,11 @@ function injectSecureIndicator(status, autoDecrypt) {
     color: white; background-color: ${autoDecrypt ? '#34c759' : '#ff9500'};
     cursor: pointer; z-index: 1000;
   `;
-  badge.textContent = status === 'Secure' ? '🔒 E2EE Secure' : '🔓 E2EE Unverified';
+  badge.textContent = status === 'verified' ? '🔒 Secure' : '🔓 Unverified';
 
   // Toggle auto-decrypt on click
   badge.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: "toggleAutoDecrypt", chatId: currentChatId, enabled: !autoDecrypt });
-    initSecureSession(currentChatId); // Refresh UI
+    alert('You can manage conatacs from extenion.');
   });
 
   header.appendChild(badge);
@@ -118,10 +117,34 @@ function scanMessages() {
       attachEphemeralDecrypt(msgNode, text);
     }
   });
+  const outMessages = document.querySelectorAll('.bubble.is-out [rb-message-text] [rb-copyable]:not(.e2e-scanned)');
+
+  outMessages.forEach(msgNode => {
+    msgNode.classList.add('e2e-scanned'); // Mark to avoid re-scanning
+    const text = msgNode.textContent.trim();
+
+    // Look for Handshake
+    if (text.includes('[E2E-SENT]')) {
+      dycryptSelfMessages(msgNode, text);
+    }
+  });
 }
 
 // --- 4. Ephemeral Controls & UI Feedback ---
-function attachEphemeralDecrypt(node, encryptedText) {
+async function attachEphemeralDecrypt(node, encryptedText) {
+  const contact = await chrome.runtime.sendMessage({
+    action: "getContact",
+    chatId: currentChatId,
+  });
+  if (contact && contact.autoDecrypt) {
+    await chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedText.replace(/=+$/, '') }, (res) => {
+      if (res && res.decrypted) {
+        node.textContent = res.decrypted;
+        node.style.borderLeft = "3px solid #34c759"; // Visual cue of successful decryption
+        node.style.paddingLeft = "5px";
+      }
+    });
+  }
   const decryptIcon = document.createElement('span');
   decryptIcon.textContent = ' 🔐';
   decryptIcon.style.cursor = 'pointer';
@@ -142,24 +165,67 @@ function attachEphemeralDecrypt(node, encryptedText) {
 
   node.appendChild(decryptIcon);
 }
+async function dycryptSelfMessages(node, encryptedText) {
+  const match = encryptedText.match(/\[E2E-SENT\]([^=]+)/);
+  const encryptedMessage = match ? match[1] : null;
+  const contact = await chrome.runtime.sendMessage({
+    action: "getContact",
+    chatId: currentChatId,
+  });
+  if (contact && contact.autoDecrypt) {
+    await chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedMessage }, (res) => {
+      if (res && res.decrypted) {
+        node.textContent = res.decrypted;
+        node.style.borderLeft = "3px solid #34c759"; // Visual cue of successful decryption
+        node.style.paddingLeft = "5px";
+      }
+    });
+  }
+  const decryptIcon = document.createElement('span');
+  decryptIcon.textContent = ' 🔐';
+  decryptIcon.style.cursor = 'pointer';
+  decryptIcon.style.opacity = '0.5';
 
-function handleHandshake(text, node) {
+  decryptIcon.addEventListener('mouseenter', () => decryptIcon.style.opacity = '1');
+  decryptIcon.addEventListener('mouseleave', () => decryptIcon.style.opacity = '0.5');
+
+  decryptIcon.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedMessage }, (res) => {
+      if (res && res.decrypted) {
+        node.textContent = res.decrypted;
+        node.style.borderLeft = "3px solid #34c759"; // Visual cue of successful decryption
+        node.style.paddingLeft = "5px";
+      }
+    });
+  });
+
+  node.appendChild(decryptIcon);
+}
+
+async function handleHandshake(text, node) {
   const extractedKey = text.replace('[E2E-HANDSHAKE]', '').trim();
 
   // Mask the ugly key in the UI
   node.textContent = "🛡️ Public Key Received";
   node.style.color = "#0071e3";
 
-  // Trigger Toast (Assume a function showToast exists in content scope)
-  alert("Public Key detected! Verify fingerprint in extension popup to enable E2EE.");
 
   // Save as unverified
-  chrome.runtime.sendMessage({
+  const contact = await chrome.runtime.sendMessage({
+    action: "getContact",
+    chatId: currentChatId,
+  });
+  if (contact)
+    return;
+  await chrome.runtime.sendMessage({
     action: "saveContact",
     chatId: currentChatId,
     publicKey: extractedKey,
     status: 'Unverified'
   });
+  // Trigger Toast (Assume a function showToast exists in content scope)
+  alert("Public Key detected! Verify fingerprint in extension popup to enable E2EE.");
+  initSecureSession(currentChatId);
 }
 
 // Initialize listener
@@ -186,7 +252,7 @@ function addSecurlySendButton() {
     if (message === '') {
       return;
     }
-    chrome.runtime.sendMessage({ action: "EncryptMessage", chatId: currentChatId, message: message }, async (res) => {
+    const result = chrome.runtime.sendMessage({ action: "EncryptMessageToSend", chatId: currentChatId, message: message }, async (res) => {
       await sendMessage(res.encrypted);
     });
   });

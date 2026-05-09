@@ -31,48 +31,16 @@ getCurrentTab().then(async tab => {
     if (tab.url.includes('#c=')) {
       const startPart = "#c=";
       const startIndex = tab.url.indexOf(startPart) + startPart.length;
-      const result = tab.url.substring(startIndex);
-      section.textContent = result;
-      const message = await findMessagesEndingWithEqualsInTab(result, tab.id);
-      // console.error(message);
-      section.textContent = message;
+      const chatId = tab.url.substring(startIndex); // this is the caht ID
+      // section.textContent = result;
+      const Contact = await chrome.runtime.sendMessage({
+        action: "getContact",
+        chatId,
+      });
+      section.textContent = Contact.name;
     }
   }
 });
-async function findMessagesEndingWithEqualsInTab(chatId, tabId) {
-  const results = await chrome.scripting.executeScript({
-    target: { tabId: tabId },
-    func: (chatId) => {
-      // This code runs inside the tab, so 'document' is the tab's DOM
-      const chatContainer = document.getElementById(chatId);
-
-      if (!chatContainer) return [];
-
-      const messageGroups = chatContainer.querySelectorAll('.bubbles-group');
-      const results = [];
-
-      messageGroups.forEach(group => {
-        const textElement = group.querySelector('[rb-message-text] [rb-copyable]');
-
-        if (textElement) {
-          const messageText = textElement.textContent.trim();
-
-          if (messageText.endsWith('=')) {
-            results.push({
-              msgId: group.getAttribute('data-msg-id'),
-              text: messageText
-            });
-          }
-        }
-      });
-
-      return results;
-    },
-    args: [chatId]
-  });
-
-  return results[0].result;
-}
 
 // Function to fetch and display all contacts
 async function loadAllContacts() {
@@ -117,6 +85,7 @@ async function loadAllContacts() {
         <div class="contact-actions">
           <button class="contact-btn toggle-btn ${autoDecryptClass}" data-action="toggleAutoDecrypt">Auto-Decrypt: ${autoDecryptText}</button>
           <button class="contact-btn verify-btn" data-action="verifyContact" style="display:${displayVerify}">Verify</button>
+          <button class="contact-btn delete-btn" data-action="deleteContact">🗑️ Delete</button>
         </div>
       `;
 
@@ -125,7 +94,9 @@ async function loadAllContacts() {
       const nameInput = contactDiv.querySelector('.contact-name-field');
       const toggleBtn = contactDiv.querySelector('[data-action="toggleAutoDecrypt"]');
       const verifyBtn = contactDiv.querySelector('[data-action="verifyContact"]');
+      const deleteBtn = contactDiv.querySelector('[data-action="deleteContact"]');
 
+      deleteBtn.addEventListener('click', () => deleteContact(contact.chatId));
       saveNameBtn.addEventListener('click', () => chrome.runtime.sendMessage({ action: "updateContactName", chatId: contact.chatId, name: nameInput.value }));
       toggleBtn.addEventListener('click', () => toggleAutoDecrypt(contact.chatId, !contact.autoDecrypt, toggleBtn));
       verifyBtn.addEventListener('click', () => verifyContact(contact.chatId, verifyBtn));
@@ -198,5 +169,25 @@ async function verifyContact(chatId, buttonElement) {
   } finally {
     buttonElement.textContent = "Verify";
     buttonElement.disabled = false;
+  }
+}
+
+async function deleteContact(chatId) {
+  if (!confirm(`Are you sure you want to delete this contact?`)) return;
+
+  try {
+    const response = await chrome.runtime.sendMessage({
+      action: "deleteContact",
+      chatId
+    });
+    if (response.success) {
+      // Refresh the contacts list
+      loadAllContacts();
+    } else {
+      alert("Failed to delete: " + response.error);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error deleting contact");
   }
 }
