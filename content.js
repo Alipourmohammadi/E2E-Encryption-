@@ -113,7 +113,7 @@ function scanMessages() {
     }
 
     // Look for Encrypted Message (assuming Base64 ends with '=')
-    if (text.endsWith('=')) {
+    if (text.includes('[E2E-SENT]')) {
       attachEphemeralDecrypt(msgNode, text);
     }
   });
@@ -152,9 +152,10 @@ async function attachEphemeralDecrypt(node, encryptedText) {
 
   decryptIcon.addEventListener('mouseenter', () => decryptIcon.style.opacity = '1');
   decryptIcon.addEventListener('mouseleave', () => decryptIcon.style.opacity = '0.5');
-
+  const match = str.match(/(.*?)\[E2E-SENT\]/);
+  const encryptedMessage = match ? match[1] : str;
   decryptIcon.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedText.replace(/=+$/, '') }, (res) => {
+    chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedMessage }, (res) => {
       if (res && res.decrypted) {
         node.textContent = res.decrypted;
         node.style.borderLeft = "3px solid #34c759"; // Visual cue of successful decryption

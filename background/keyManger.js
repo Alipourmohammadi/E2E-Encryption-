@@ -51,7 +51,7 @@ async function generateKeyPair() {
   const jwkPrivate = await crypto.subtle.exportKey("jwk", newKeyPair.privateKey);
   const Pair = { publicKey: jwkPublic, privateKey: jwkPrivate };
   saveKeyPair(Pair);
-  cachedKeyPair = { privateKey: newKeyPair.privateKey, publicKey: newKeyPair.publicKey, jwkPublic };
+  cachedKeyPair = { privateKey: newKeyPair.privateKey, publicKey: newKeyPair.publicKey, publicJwk: jwkPublic };
   return cachedKeyPair;
 }
 
