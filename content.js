@@ -52,7 +52,7 @@ function injectSecureIndicator(status, autoDecrypt) {
   });
 
   header.appendChild(badge);
-  addSecurityButton();
+  addSecurlySendButton();
 }
 
 function injectSecureButton() {
@@ -68,35 +68,7 @@ function injectSecureButton() {
   btn.addEventListener('click', () => {
     // Broadcast public key
     chrome.runtime.sendMessage({ action: "broadcastHandshake", chatId: currentChatId }, async (response) => {
-      const textArea = document.querySelector('.composer_rich_textarea') || document.body;
-      if (!textArea) {
-        console.warn('Send button not found');
-        return;
-      }
-      textArea.focus();
-      textArea.click();
-      // Dispatch a paste-like input
-      const dataTransfer = new DataTransfer();
-      dataTransfer.setData('text/plain', "");
-
-      const pasteEvent = new ClipboardEvent('paste', {
-        bubbles: true,
-        cancelable: true,
-        clipboardData: dataTransfer
-      });
-      textArea.dispatchEvent(pasteEvent);
-      // put the publickey
-      textArea.textContent = response.payload;
-
-      // Wait for UI to react
-      await new Promise(r => setTimeout(r, 100));
-
-      // Click send button
-      // Find the send button using its most specific class
-      const sendRipple = document.querySelector('button.btn-send .c-ripple');
-      if (sendRipple) {
-        sendRipple.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      }
+      await sendMessage(response.payload);
     });
   });
 
@@ -106,6 +78,7 @@ function injectSecureButton() {
 function removeInjectedUI() {
   document.getElementById('e2e-badge')?.remove();
   document.getElementById('e2e-secure-btn')?.remove();
+  document.getElementById('sec-send-button')?.remove();
 }
 
 // --- 3. Automated Contact Discovery (MutationObserver) ---
@@ -127,7 +100,8 @@ function debouncedScan() {
 
 function scanMessages() {
   // Target Rubika's message text containers
-  const messages = document.querySelectorAll('[rb-message-text] [rb-copyable]:not(.e2e-scanned)');
+  // const messages = document.querySelectorAll('[rb-message-text] [rb-copyable]:not(.e2e-scanned) ');
+  const messages = document.querySelectorAll('.bubble.is-in [rb-message-text] [rb-copyable]:not(.e2e-scanned)');
 
   messages.forEach(msgNode => {
     msgNode.classList.add('e2e-scanned'); // Mark to avoid re-scanning
@@ -192,8 +166,8 @@ function handleHandshake(text, node) {
 window.addEventListener('hashchange', checkChatId);
 // Check immediately on load
 checkChatId();
-
-function addSecurityButton() {
+// helper functions:
+function addSecurlySendButton() {
   const container = document.querySelector('.chat-input-content');
   if (!container || container.querySelector('.secure-chat-indicator')) return;
 
@@ -203,11 +177,18 @@ function addSecurityButton() {
 
   // Create the button
   const secureBtn = document.createElement('button');
+  secureBtn.id = 'sec-send-button';
   secureBtn.className = 'btn-icon secure-chat-indicator';
   secureBtn.innerHTML = '🔒';
-  secureBtn.title = 'Secured chat';
+  secureBtn.title = 'Send Encrypted';
   secureBtn.addEventListener('click', () => {
-    const container = document.querySelector('.chat-input-content');
+    const message = getTextInTextArea();
+    if (message === '') {
+      return;
+    }
+    chrome.runtime.sendMessage({ action: "EncryptMessage", chatId: currentChatId, message: message }, async (res) => {
+      await sendMessage(res.encrypted);
+    });
   });
   // Match the existing style from the HTML you shared
   Object.assign(secureBtn.style, {
@@ -221,4 +202,46 @@ function addSecurityButton() {
 
   // Insert before the send container (no re-wrapping)
   container.insertBefore(secureBtn, sendContainer);
+}
+
+// send specefic text
+async function sendMessage(text) {
+  const textArea = document.querySelector('.composer_rich_textarea') || document.body;
+  if (!textArea) {
+    console.warn('Send button not found');
+    return;
+  }
+  textArea.focus();
+  textArea.click();
+  // Dispatch a paste-like input
+  const dataTransfer = new DataTransfer();
+  dataTransfer.setData('text/plain', "");
+
+  const pasteEvent = new ClipboardEvent('paste', {
+    bubbles: true,
+    cancelable: true,
+    clipboardData: dataTransfer
+  });
+  textArea.dispatchEvent(pasteEvent);
+  // put the publickey
+  textArea.textContent = text;
+
+  // Wait for UI to react
+  await new Promise(r => setTimeout(r, 100));
+
+  // Click send button
+  // Find the send button using its most specific class
+  const sendRipple = document.querySelector('button.btn-send .c-ripple');
+  if (sendRipple) {
+    sendRipple.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  }
+}
+
+function getTextInTextArea() {
+  const textArea = document.querySelector('.composer_rich_textarea') || document.body;
+  if (!textArea) {
+    console.warn('textArea not found');
+    return;
+  }
+  return textArea.textContent;
 }
