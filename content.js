@@ -21,6 +21,7 @@ async function initSecureSession(chatId) {
     // console.error(contact.autoDecrypt);
     if (contact) {
       injectSecureIndicator(contact.status, contact.autoDecrypt);
+      injectSecureButton();
     } else {
       injectSecureButton();
     }
@@ -62,7 +63,8 @@ function injectSecureButton() {
   btn.id = 'e2e-secure-btn';
   btn.className = 'btn-primary'; // Using your existing CSS class
   btn.style.marginLeft = '10px';
-  btn.textContent = '🛡️ Secure This Chat';
+  btn.style.width = '200px';
+  btn.textContent = '🛡️ Secure This Chat / Send your PublicKey';
 
   btn.addEventListener('click', () => {
     // Broadcast public key
@@ -132,12 +134,14 @@ function scanMessages() {
 
 // --- 4. Ephemeral Controls & UI Feedback ---
 async function attachEphemeralDecrypt(node, encryptedText) {
+  const match = encryptedText.match(/(.*?)\[E2E-SENT\]/);
+  const encryptedMessage = match ? match[1] : str;
   const contact = await chrome.runtime.sendMessage({
     action: "getContact",
     chatId: currentChatId,
   });
   if (contact && contact.autoDecrypt) {
-    await chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedText.replace(/=+$/, '') }, (res) => {
+    await chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedMessage }, (res) => {
       if (res && res.decrypted) {
         node.textContent = res.decrypted;
         node.style.borderLeft = "3px solid #34c759"; // Visual cue of successful decryption
@@ -152,8 +156,7 @@ async function attachEphemeralDecrypt(node, encryptedText) {
 
   decryptIcon.addEventListener('mouseenter', () => decryptIcon.style.opacity = '1');
   decryptIcon.addEventListener('mouseleave', () => decryptIcon.style.opacity = '0.5');
-  const match = encryptedText.match(/(.*?)\[E2E-SENT\]/);
-  const encryptedMessage = match ? match[1] : str;
+  
   decryptIcon.addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedMessage }, (res) => {
       if (res && res.decrypted) {
@@ -225,7 +228,7 @@ async function handleHandshake(text, node) {
     status: 'Unverified'
   });
   // Trigger Toast (Assume a function showToast exists in content scope)
-  alert("Public Key detected! Verify fingerprint in extension popup to enable E2EE.");
+  // alert("Public Key detected! Verify fingerprint in extension popup to enable E2EE.");
   initSecureSession(currentChatId);
 }
 
