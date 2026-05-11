@@ -21,10 +21,10 @@ export const ContactManager = {
     });
   },
 
-  async saveContact(chatId, publicKey, fingerprint, status = 'Unverified') {
+  async saveContact(chatId, publicKey, fingerprint, name, status = 'Unverified') {
+    if (name == null) name = 'UnNamed';
     return new Promise((resolve, reject) => {
       if (!chatId || !publicKey) return reject(new Error("Missing required fields"));
-      const name = 'unNamed';
       const contactObj = { [chatId]: { name, publicKey, fingerprint, status, autoDecrypt: false } };
       chrome.storage.local.set(contactObj, () => resolve(true));
     });
@@ -42,7 +42,7 @@ export const ContactManager = {
       });
     });
   },
-  
+
   async updateContactStatus(chatId, status) {
     const contact = await this.getContact(chatId);
     if (contact) {

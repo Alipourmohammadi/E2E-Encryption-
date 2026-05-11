@@ -53,7 +53,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then(cryptoKey => computeFingerprint(cryptoKey))
       .then(fingerprint => {
         const shortFingerprint = fingerprint.substring(0, 16); // Truncated SHA-256
-        return ContactManager.saveContact(request.chatId, request.publicKey, shortFingerprint);
+        return ContactManager.saveContact(request.chatId, request.publicKey, shortFingerprint, request.contactName);
       })
       .then(() => sendResponse({ success: true }))
       .catch(e => {

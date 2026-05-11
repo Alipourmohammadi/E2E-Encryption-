@@ -156,7 +156,7 @@ async function attachEphemeralDecrypt(node, encryptedText) {
 
   decryptIcon.addEventListener('mouseenter', () => decryptIcon.style.opacity = '1');
   decryptIcon.addEventListener('mouseleave', () => decryptIcon.style.opacity = '0.5');
-  
+
   decryptIcon.addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: "DecryptMessage", encrypted: encryptedMessage }, (res) => {
       if (res && res.decrypted) {
@@ -221,11 +221,14 @@ async function handleHandshake(text, node) {
   });
   if (contact)
     return;
+  const nameSpan = document.querySelector('.person .user-title span');
+  const contactName = nameSpan ? nameSpan.textContent : null;
   await chrome.runtime.sendMessage({
     action: "saveContact",
     chatId: currentChatId,
     publicKey: extractedKey,
-    status: 'Unverified'
+    status: 'Unverified',
+    contactName: contactName
   });
   // Trigger Toast (Assume a function showToast exists in content scope)
   // alert("Public Key detected! Verify fingerprint in extension popup to enable E2EE.");
